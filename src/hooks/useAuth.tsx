@@ -20,28 +20,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        if (user) {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setLoading(false);
 
-          if (!userSnap.exists()) {
-            await setDoc(userRef, {
-              uid: user.uid,
-              email: user.email,
-              name: user.displayName || 'Người dùng',
-              createdAt: new Date().toISOString(),
-            });
-          }
-        }
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
 
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Auth/Firestore error:', error);
-        setCurrentUser(user);
-      } finally {
-        setLoading(false);
+        getDoc(userRef)
+          .then((userSnap) => {
+            if (!userSnap.exists()) {
+              return setDoc(userRef, {
+                uid: user.uid,
+                email: user.email,
+                name: user.displayName || 'Người dùng',
+                createdAt: new Date().toISOString(),
+              });
+            }
+          })
+          .catch((error) => {
+            console.error('Firestore user sync error:', error);
+          });
       }
     });
 
