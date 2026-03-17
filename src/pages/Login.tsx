@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { signInWithGoogle } from '../lib/firebase';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Wallet } from 'lucide-react';
 
 export default function Login() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,6 +21,7 @@ export default function Login() {
       setLoading(true);
       setError('');
       await signInWithGoogle();
+      navigate('/', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Đã xảy ra lỗi khi đăng nhập');
     } finally {
@@ -43,8 +45,8 @@ export default function Login() {
               {error}
             </div>
           )}
-          <Button 
-            className="w-full h-12 text-base" 
+          <Button
+            className="w-full h-12 text-base"
             onClick={handleGoogleLogin}
             disabled={loading}
           >
