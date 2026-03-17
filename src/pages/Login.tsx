@@ -1,27 +1,19 @@
 import { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
 import { signInWithGoogle } from '../lib/firebase';
-import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Wallet } from 'lucide-react';
 
 export default function Login() {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  if (currentUser) {
-    return <Navigate to="/" replace />;
-  }
 
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
       setError('');
       await signInWithGoogle();
-      navigate('/', { replace: true });
+      window.location.href = '/';
     } catch (err: any) {
       setError(err.message || 'Đã xảy ra lỗi khi đăng nhập');
     } finally {
@@ -45,16 +37,9 @@ export default function Login() {
               {error}
             </div>
           )}
-          <Button
-            className="w-full h-12 text-base"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-          >
+          <Button className="w-full h-12 text-base" onClick={handleGoogleLogin} disabled={loading}>
             {loading ? 'Đang xử lý...' : 'Đăng nhập bằng Google'}
           </Button>
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            Bằng việc đăng nhập, bạn đồng ý với điều khoản sử dụng của chúng tôi.
-          </p>
         </CardContent>
       </Card>
     </div>
