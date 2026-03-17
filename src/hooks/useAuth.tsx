@@ -8,7 +8,10 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ currentUser: null, loading: true });
+const AuthContext = createContext<AuthContextType>({
+  currentUser: null,
+  loading: true,
+});
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -18,26 +21,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Check if user document exists, if not create it
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) {
-          try {
+      try {
+        if (user) {
+          const userRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
+
+          if (!userSnap.exists()) {
             await setDoc(userRef, {
               uid: user.uid,
               email: user.email,
               name: user.displayName || 'Người dùng',
-              createdAt: new Date().toISOString()
+              createdAt: new Date().toISOString(),
             });
-          } catch (error) {
-            console.error("Error creating user document", error);
           }
         }
+
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Auth/Firestore error:', error);
+        setCurrentUser(user);
+      } finally {
+        setLoading(false);
       }
-      setCurrentUser(user);
-      setLoading(false);
     });
 
     return unsubscribe;
@@ -45,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ currentUser, loading }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
